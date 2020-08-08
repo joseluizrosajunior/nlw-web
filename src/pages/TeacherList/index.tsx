@@ -1,20 +1,44 @@
-import React from "react";
+import React, { useState, FormEvent } from "react";
 
 import PageHeader from "../../components/PageHeader";
 
 import "./styles.css";
-import TeacherItem from "../../components/TeacherItem";
+import TeacherItem, { Teacher } from "../../components/TeacherItem";
 import Input from "../../components/Input";
 import Select from "../../components/Select";
+import api from "../../services/api";
 
 function TeacherList() {
+
+  const [teachers, setTeachers] = useState([]);
+
+  const [subject, setSubject] = useState('');
+  const [week_day, setWeekDay] = useState('');
+  const [time, setTime] = useState('');
+  
+  async function searchTeachers(e: FormEvent) {
+    e.preventDefault();
+    const response = await api.get('classes', {
+      params: {
+        week_day,
+        subject,
+        time
+      }
+    });
+
+    setTeachers(response.data); 
+
+  }
+
   return (
     <div id="page-teacher-list" className="container">
       <PageHeader title="Esse são os proffys disponíveis">
-        <form id="search-teachers">
+        <form id="search-teachers" onSubmit={searchTeachers}>
         <Select 
             name="subject"
             label="Matéria"
+            value={subject} 
+            onChange={(e) => setSubject(e.target.value)}
             options={[
               { value: 'Artes', label:'Artes' },
               { value: 'Biologia', label:'Biologia' },
@@ -26,6 +50,8 @@ function TeacherList() {
           <Select 
             name="week_day"
             label="Dia da semana"
+            value={week_day} 
+            onChange={(e) => setWeekDay(e.target.value)}
             options={[
               { value: '0', label:'Domingo' },
               { value: '1', label:'Segunda' },
@@ -36,20 +62,21 @@ function TeacherList() {
               { value: '6', label:'Sábado' },
             ]}
           />
-          <Input name="time" label="Horário" type="time"></Input>
+          <Input 
+            name="time" 
+            label="Horário" 
+            type="time"
+            value={time} 
+            onChange={(e) => setTime(e.target.value)}
+          />
+          <button type="submit">Buscar</button>
         </form>
       </PageHeader>
 
       <main>
-        <TeacherItem
-          avatar="https://lh3.googleusercontent.com/ogw/ADGmqu8FUK1txo3adxz5V4rIgFJepLKocQmiPWDkB_Gg=s83-c-mo"
-          name="José Luiz"
-          subject="Programação"
-          subtitle="It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout."
-          description="There are many variations of passages of Lorem Ipsum available, but the majority have suffered alteration in some form, by injected humour, or randomised words which don't look even slightly believable."
-          price={100}
-          phone="5548999794989"
-        />
+        {teachers.map( (teacher: Teacher) => {
+          return <TeacherItem key={teacher.id} teacher={teacher}></TeacherItem>
+        })}
       </main>
     </div>
   );
